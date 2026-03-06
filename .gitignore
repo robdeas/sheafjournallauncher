@@ -1,0 +1,21 @@
+# --- SheafJournal Binaries ---
+*.exe
+sheafjournal
+dist/
+dist-linux/
+
+# --- Environment Secrets ---
+# Do NOT commit these if they contain your active UUIDs and you choose to keep those secret
+# sheaf-launcher.env
+# sheaf-launcher-engine.env
+
+# --- WebStorm / JetBrains ---
+.idea/
+*.iws
+*.iml
+out/
+
+# --- OS / Misc ---
+.DS_Store
+Thumbs.db
+bun.zip
