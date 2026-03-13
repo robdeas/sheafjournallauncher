@@ -35,7 +35,7 @@ func openWindow(url string, cfg LauncherConfig) {
 		},
 	})
 	if w == nil {
-		log.Fatal("[sheaflauncher] failed to create WebView2 window — is WebView2 runtime installed?")
+		log.Fatal("[sheafgatelauncher] failed to create WebView2 window — is WebView2 runtime installed?")
 	}
 	defer w.Destroy()
 	w.Navigate(url)

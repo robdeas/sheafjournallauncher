@@ -34,7 +34,7 @@ func openWindow(url string, cfg LauncherConfig) {
 
 	ui, err := lorca.New(url, "", cfg.WindowWidth, cfg.WindowHeight)
 	if err != nil {
-		log.Printf("[sheaflauncher] lorca failed to open: %v", err)
+		log.Printf("[sheafgatelauncher] lorca failed to open: %v", err)
 		showNoChromeError()
 		return
 	}

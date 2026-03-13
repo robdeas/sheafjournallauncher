@@ -22,7 +22,7 @@ import (
 	"strings"
 )
 
-// LauncherConfig holds settings read from sheaf-launcher.env at build time
+// LauncherConfig holds settings read from sheafgate-launcher.env at build time
 // via -ldflags, with sensible defaults for local dev builds.
 type LauncherConfig struct {
 	// Window
@@ -36,7 +36,7 @@ type LauncherConfig struct {
 	ReadyTimeout  int // seconds
 }
 
-// Build-time variables from sheaf-launcher.env via -ldflags
+// Build-time variables from sheafgate-launcher.env via -ldflags
 var (
 	CfgWindowTitle   = "" // defaults to AppName
 	CfgWindowWidth   = "1200"

@@ -62,29 +62,29 @@ var enginePort int
 
 func main() {
 	if LauncherUUID == "" {
-		log.Fatal("[sheaflauncher] LauncherUUID not set — build with -ldflags -X main.LauncherUUID=...")
+		log.Fatal("[sheafgatelauncher] LauncherUUID not set — build with -ldflags -X main.LauncherUUID=...")
 	}
 
 	cfg := loadConfig()
 
-	log.Printf("[sheaflauncher] %s %s (%s) built %s", AppName, Version, GitCommit, BuildTime)
+	log.Printf("[sheafgatelauncher] %s %s (%s) built %s", AppName, Version, GitCommit, BuildTime)
 
 	password := resolvePassword()
 
 	port, err := launchBunWithRetry(password, cfg)
 	if err != nil {
-		log.Fatalf("[sheaflauncher] failed to start engine: %v", err)
+		log.Fatalf("[sheafgatelauncher] failed to start engine: %v", err)
 	}
 	enginePort = port
 
 	defer shutdownEngine()
 
 	url := fmt.Sprintf(
-		"http://127.0.0.1:%d/sheaflauncher-control?uuid=%s&password=%s",
+		"http://127.0.0.1:%d/sheafgate-control?uuid=%s&password=%s",
 		port, LauncherUUID, password,
 	)
 
-	log.Printf("[sheaflauncher] engine ready on port %d, opening webview", port)
+	log.Printf("[sheafgatelauncher] engine ready on port %d, opening webview", port)
 
 	openWindow(url, cfg)
 }
@@ -95,10 +95,10 @@ func shutdownEngine() {
 	if engineCmd == nil || engineCmd.Process == nil {
 		return
 	}
-	log.Printf("[sheaflauncher] sending shutdown signal to engine")
+	log.Printf("[sheafgatelauncher] sending shutdown signal to engine")
 	client := &http.Client{Timeout: 2 * time.Second}
 	url := fmt.Sprintf(
-		"http://127.0.0.1:%d/sheaflauncher-control?uuid=%s",
+		"http://127.0.0.1:%d/sheafgate-control?uuid=%s",
 		enginePort, LauncherUUID,
 	)
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
@@ -108,7 +108,7 @@ func shutdownEngine() {
 	// Give engine a moment to shut down gracefully before force killing
 	time.Sleep(200 * time.Millisecond)
 	if err := engineCmd.Process.Kill(); err == nil {
-		log.Printf("[sheaflauncher] engine process killed")
+		log.Printf("[sheafgate] engine process killed")
 	}
 }
 
@@ -116,7 +116,7 @@ func shutdownEngine() {
 
 func resolvePassword() string {
 	pw := uuid.New().String()
-	log.Printf("[sheaflauncher] generated session password")
+	log.Printf("[sheafgatelauncher] generated session password")
 	return pw
 }
 
@@ -125,7 +125,7 @@ func resolvePassword() string {
 func launcherDir() string {
 	exe, err := os.Executable()
 	if err != nil {
-		log.Fatalf("[sheaflauncher] could not determine executable path: %v", err)
+		log.Fatalf("[sheafgatelauncher] could not determine executable path: %v", err)
 	}
 	return filepath.Dir(exe)
 }
@@ -170,7 +170,7 @@ func findFreePort(preferred int) (int, error) {
 func checkEngineAlive(port int) bool {
 	client := &http.Client{Timeout: 2 * time.Second}
 	resp, err := client.Get(fmt.Sprintf(
-		"http://127.0.0.1:%d/sheaflauncher-control?uuid=%s",
+		"http://127.0.0.1:%d/sheafgate-control?uuid=%s",
 		port, LauncherUUID,
 	))
 	if err != nil {
@@ -199,7 +199,7 @@ func launchBun(password string, port int, cfg LauncherConfig) (int, error) {
 
 	cmd := exec.Command(bunPath, scriptPath)
 	env := os.Environ()
-	env = setEnvVar(env, "SHEAF_LAUNCHER_PASSWORD", password)
+	env = setEnvVar(env, "SHEAFGATE_LAUNCHER_PASSWORD", password)
 	env = setEnvVar(env, "PORT", fmt.Sprintf("%d", port))
 	env = setEnvVar(env, "HOST", "127.0.0.1")
 	cmd.Env = env
@@ -207,11 +207,11 @@ func launchBun(password string, port int, cfg LauncherConfig) (int, error) {
 	for _, e := range cmd.Env {
 		if strings.HasPrefix(e, "PORT=") ||
 			strings.HasPrefix(e, "HOST=") ||
-			strings.HasPrefix(e, "SHEAF_") {
-			log.Printf("[sheaflauncher] env: %s", e)
+			strings.HasPrefix(e, "SHEAFGATE_") {
+			log.Printf("[sheafgate] env: %s", e)
 		}
 	}
-	log.Printf("[sheaflauncher] running: %s %s", bunPath, scriptPath)
+	log.Printf("[sheafgatelauncher] running: %s %s", bunPath, scriptPath)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -283,15 +283,15 @@ func launchBun(password string, port int, cfg LauncherConfig) (int, error) {
 		return 0, err
 	case <-time.After(timeout):
 		// Before giving up check if engine is actually running on expected port
-		log.Printf("[sheaflauncher] ready signal timeout — checking port %d directly", port)
+		log.Printf("[sheafgatelauncher] ready signal timeout — checking port %d directly", port)
 		if checkEngineAlive(port) {
-			log.Printf("[sheaflauncher] engine alive on port %d (no ready signal)", port)
+			log.Printf("[sheafgatelauncher] engine alive on port %d (no ready signal)", port)
 			return port, nil
 		}
 		// Also scan nearby ports in case adapter-node shifted
 		for p := port + 1; p < port+20; p++ {
 			if checkEngineAlive(p) {
-				log.Printf("[sheaflauncher] engine found on port %d (shifted from %d)", p, port)
+				log.Printf("[sheafgatelauncher] engine found on port %d (shifted from %d)", p, port)
 				return p, nil
 			}
 		}
@@ -319,7 +319,7 @@ func launchBunWithRetry(password string, cfg LauncherConfig) (int, error) {
 			return 0, err
 		}
 
-		log.Printf("[sheaflauncher] port busy, retry %d/%d", attempt+1, cfg.PortRetries)
+		log.Printf("[sheafgatelauncher] port busy, retry %d/%d", attempt+1, cfg.PortRetries)
 	}
 
 	return 0, fmt.Errorf("could not bind to a port after %d attempts", cfg.PortRetries)

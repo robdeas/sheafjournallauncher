@@ -6,8 +6,8 @@ dist-linux/
 
 # --- Environment Secrets ---
 # Do NOT commit these if they contain your active UUIDs and you choose to keep those secret
-# sheaf-launcher.env
-# sheaf-launcher-engine.env
+# sheafgate-launcher.env
+# sheafgate-launcher-engine.env
 
 # --- WebStorm / JetBrains ---
 .idea/
